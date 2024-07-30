@@ -1,0 +1,80 @@
+import pandas as pd
+import os
+
+
+def save_to_specific_directory(df, filename='filtered_data.xlsx'):
+    try:
+        # Save to the specified directory
+        specific_directory_path = os.path.join('D:', 'Exceldata', filename)
+        df.to_excel(specific_directory_path, index=False)
+        print(f"Data has been saved to {specific_directory_path}")
+    except Exception as e:
+        print(f"Failed to save the file: {e}")
+
+
+def main():
+    try:
+        # Correct file path
+        csv_path = 'D:/index.csv'
+
+        # Load the data
+        print("Reading CSV file...")
+        df = pd.read_csv(csv_path)
+        print("CSV file loaded successfully.")
+
+        # Print column names to check the actual column names
+        print("Column names in the DataFrame:", df.columns)
+
+        # Data exploration
+        print("First few rows of the DataFrame:")
+        print(df.head())
+        print("Descriptive statistics of the DataFrame:")
+        print(df.describe())
+        print("Missing values in the DataFrame:")
+        print(df.isnull().sum())
+
+        # Data cleaning
+        df.ffill(inplace=True)  # Forward fill missing values
+        df.drop_duplicates(inplace=True)  # Remove duplicates
+        print("Data cleaning done.")
+
+        # Correct column names
+        datetime_column = 'datetime'  # Column name for datetime
+        value_column = 'money'  # Column name for value
+        category_column = 'cash_type'  # Column name for category
+
+        # Ensure you use the correct column names
+        if datetime_column in df.columns:
+            df[datetime_column] = pd.to_datetime(df[datetime_column])
+            print(f"Converted '{datetime_column}' to datetime.")
+        else:
+            raise KeyError(f"Column '{datetime_column}' not found in the DataFrame.")
+
+        # Extract hour from datetime
+        df['hour'] = df[datetime_column].dt.hour
+        print("Extracted hour from datetime.")
+
+        # Define threshold value
+        threshold_value = 30  # You can set this to any value you need
+
+        # Data analysis: Filter data based on the threshold value
+        filtered_df = df[df[value_column] > threshold_value]
+        print("Data filtering done.")
+
+        # Sorting data
+        sorted_df = filtered_df.sort_values(by=[datetime_column, category_column])
+        print("Data sorting done.")
+
+        # Save the sorted data to the specified directory
+        save_to_specific_directory(sorted_df)
+
+    except FileNotFoundError:
+        print(f"Error: The file '{csv_path}' was not found.")
+    except KeyError as e:
+        print(f"Error: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+
+if __name__ == "__main__":
+    main()
